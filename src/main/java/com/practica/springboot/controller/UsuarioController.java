@@ -1,41 +1,58 @@
 package com.practica.springboot.controller;
 
-import com.practica.springboot.dto.Usuario;
+import com.practica.springboot.dto.Usuarios;
+import com.practica.springboot.service.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class UsuarioController {
 
+    @Autowired
+    UsuarioService usuarioService;
+
     @GetMapping("/usuarios")
-    public List<Usuario> obtenerUsuarios(){
-        return List.of(new Usuario());
+    public List<Usuarios> obtenerUsuarios(){
+        return usuarioService.obtenerUsuarios();
     }
 
     @GetMapping("/usuarios/{id}")
-    public Usuario obtenerUsuarioXId(@PathVariable Long id){
-        System.out.println("Id recibido: " + id);
-        return new Usuario();
+    public ResponseEntity<Usuarios> obtenerUsuarioXId(@PathVariable Long id){
+        Optional<Usuarios> optionalUsuario = usuarioService.obtenerUsuarioPorId(id);
+        if(optionalUsuario.isPresent()){
+            return ResponseEntity.ok(optionalUsuario.get());
+        }else{
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/usuarios")
-    public ResponseEntity<Usuario> crearUsuario(@RequestBody Usuario usuario){
-        System.out.println("Usuario recibido: " + usuario);
-        return ResponseEntity.ok(usuario);
+    public ResponseEntity<Usuarios> crearUsuario(@RequestBody Usuarios usuario) throws URISyntaxException {
+        Usuarios usuariocreado = usuarioService.crearUsuario(usuario);
+        return ResponseEntity.created(new URI("http://localhost/usuarios")).build();
     }
 
     @PutMapping("/usuarios/{id}")
-    public ResponseEntity<Usuario> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuarioActualizar){
-        System.out.println("id recibido: " + id);
-        System.out.println("Usuario recibido: " + usuarioActualizar);
-        return ResponseEntity.ok(usuarioActualizar);
+    public ResponseEntity<Usuarios> actualizarUsuario(@PathVariable Long id, @RequestBody Usuarios usuariosActualizar){
+        Optional<Usuarios> usuarioOptional = usuarioService.obtenerUsuarioPorId(id);
+        if(usuarioOptional.isPresent()){
+            usuariosActualizar.setIdUsuario(usuarioOptional.get().getIdUsuario());
+            usuarioService.actualizarUsuario(usuariosActualizar);
+            return ResponseEntity.ok(usuariosActualizar);
+        }else{
+            return ResponseEntity.notFound().build(); //responde con error 404
+        }
     }
 
     @DeleteMapping("/usuarios/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id){
-        System.out.println("id recibido: " + id);
+        usuarioService.eliminarUsuario(id);
         return ResponseEntity.noContent().build();
     }
 }
