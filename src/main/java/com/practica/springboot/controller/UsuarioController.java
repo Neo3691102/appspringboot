@@ -33,9 +33,14 @@ public class UsuarioController {
     }
 
     @PostMapping("/usuarios")
-    public ResponseEntity<Usuarios> crearUsuario(@RequestBody Usuarios usuario) throws URISyntaxException {
-        Usuarios usuariocreado = usuarioService.crearUsuario(usuario);
-        return ResponseEntity.created(new URI("http://localhost/usuarios")).build();
+    public ResponseEntity<Usuarios> crearUsuario(@RequestBody Usuarios usuario) {
+        try{
+            Usuarios usuariocreado = usuarioService.crearUsuario(usuario);
+            return ResponseEntity.created(new URI("http://localhost/usuarios")).build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+
     }
 
     @PutMapping("/usuarios/{id}")
